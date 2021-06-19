@@ -35,7 +35,7 @@ SondeProcessor::SondeProcessor() {
 
 	audio_output.configure(false);
 
-	tone_gen.configure(BEEP_BASE_FREQ, 1.0, ToneGen::tone_type::sine, AUDIO_SAMPLE_RATE);
+	tone_gen.configure(BEEP_BASE_FREQ, 1.0, ToneGen::tone_type::sine_linear, AUDIO_SAMPLE_RATE);
 }
 
 void SondeProcessor::execute(const buffer_c8_t& buffer) {
@@ -139,7 +139,7 @@ void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message)
 	uint32_t freq = (int) ((float) message.rssi * (float) RSSI_PITCH_WEIGHT + (float) BEEP_BASE_FREQ);
 
 	last_rssi = message.rssi;
-	tone_gen.configure(freq, 1.0, ToneGen::tone_type::sine, AUDIO_SAMPLE_RATE);
+	tone_gen.configure(freq, 1.0, ToneGen::tone_type::sine_linear, AUDIO_SAMPLE_RATE);
 }
 
 int main() {

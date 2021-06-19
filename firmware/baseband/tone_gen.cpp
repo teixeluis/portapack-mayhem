@@ -20,13 +20,23 @@
  * Boston, MA 02110-1301, USA.
  */
 
+
 #include "tone_gen.hpp"
 #include "sine_table_int8.hpp"
+#include "sine_table.hpp"
 
 
-int32_t ToneGen::tone_sine() {
+int32_t ToneGen::tone_sine_discrete() {
 	int32_t tone_sample = sine_table_i8[tone_phase_] * 0x1000000;
 	tone_phase_ += delta_;
+
+	return tone_sample;
+}
+
+int32_t ToneGen::tone_sine_linear() {
+	int32_t tone_sample = (int32_t) (sin_f32(tone_phase_f_) * (float) INT32_MAX);
+
+	tone_phase_f_ += delta_f_;
 
 	return tone_sample;
 }
@@ -51,25 +61,35 @@ void ToneGen::configure(const uint32_t delta, const float tone_mix_weight) {
 	tone_mix_weight_ = tone_mix_weight;
 	input_mix_weight_ = 1.0 - tone_mix_weight;
 
-	current_tone_type_ = sine;
+	current_tone_type_ = sine_discrete;
 }
 
 void ToneGen::configure(const uint32_t freq, const float tone_mix_weight, const tone_type tone_type, const uint32_t sample_rate) {
-	delta_ = (uint8_t) ((freq * sizeof(sine_table_i8)) / sample_rate);
+	if(tone_type == sine_linear) {
+		delta_f_ = (float) 2 * freq * pi / (float) sample_rate;
+	}
+	else {
+		delta_ = (uint8_t) ((float) freq * sizeof(sine_table_i8) / (float) sample_rate);
+	}
+
 	tone_mix_weight_ = tone_mix_weight;
 	input_mix_weight_ = 1.0 - tone_mix_weight;
 	current_tone_type_ = tone_type;
 }
 
 int32_t ToneGen::process(const int32_t sample_in) {
-	if (!delta_)
+	if(!delta_ && !delta_f_) {
 		return sample_in;
-	
+	}
+
 	int32_t tone_sample = 0;
 	
-	if(current_tone_type_ == sine) {
-		tone_sample = tone_sine();
+	if(current_tone_type_ == sine_discrete) {
+		tone_sample = tone_sine_discrete();
 	}
+	if(current_tone_type_ == sine_linear) {
+		tone_sample = tone_sine_linear();
+	}	
 	else if(current_tone_type_ == square) {
 		tone_sample = tone_square();
 	}

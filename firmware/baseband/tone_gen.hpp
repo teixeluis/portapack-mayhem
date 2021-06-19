@@ -23,12 +23,13 @@
 #ifndef __TONE_GEN_H__
 #define __TONE_GEN_H__
 
+
 #include <cstdint>
 #include <cstddef>
 
 class ToneGen {
 public:
-	enum tone_type { sine, square };
+	enum tone_type { sine_discrete, sine_linear, square };
 
 	/*ToneGen(const size_t sample_rate
 	) : sample_rate_ { sample_rate }
@@ -40,19 +41,28 @@ public:
 	int32_t process(const int32_t sample_in);
 
 private:
-	tone_type current_tone_type_ { sine };
+	const double pi = 3.14159265358979323846;
+
+	tone_type current_tone_type_ { sine_discrete };
 
 	float input_mix_weight_ { 1 };
 	float tone_mix_weight_ { 0 };
 
 	uint8_t delta_ { 0 };
+	float delta_f_ { 0.0 };
+
 	uint8_t tone_phase_ { 0 };
+	float tone_phase_f_{ 0.0 };
 
 	/**
 	 * Generator function which selects every other sample from the reference sine waveform to the output sample:
 	 */
-	int32_t tone_sine();
+	int32_t tone_sine_discrete();
 
+	/**
+	 * Generator that decimates the sinewave performing linear approximations. 
+	 */
+	int32_t tone_sine_linear();
 
 	/**
 	 * Generator function for square waves:
