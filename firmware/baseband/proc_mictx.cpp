@@ -35,6 +35,15 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 	if (!configured) return;
 	
 	audio_input.read_audio_buffer(audio_buffer);
+
+	if(play_beep) {
+		sample = beep_gen.process(0);
+
+		for(uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
+			audio_buffer.p[i] = (int16_t) ((sample >> 16) & 0x0000FFFF);
+		}
+	}
+
 	modulator->execute(audio_buffer, buffer);
 
 	for (size_t i = 0; i < buffer.count; i++) {
@@ -67,10 +76,8 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 					beep_index++;
 				}
 			}
-			
-			sample = beep_gen.process(0);
 		}
-		
+
 		/*
 		sample = tone_gen.process(sample);
 		
